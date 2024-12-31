@@ -69,13 +69,13 @@ export default function useResponsiveObserver() {
   return React.useMemo(() => {
     const subscribers = new Map<number, SubscribeFunc>();
     let subUid = -1;
-    let screens: Partial<Record<Breakpoint, boolean>> = {};
+    let screens = {};
 
     return {
       matchHandlers: {} as {
         [prop: string]: {
           mql: MediaQueryList;
-          listener: (this: MediaQueryList, ev: MediaQueryListEvent) => void;
+          listener: ((this: MediaQueryList, ev: MediaQueryListEvent) => any) | null;
         };
       },
       dispatch(pointMap: ScreenMap) {
@@ -84,9 +84,7 @@ export default function useResponsiveObserver() {
         return subscribers.size >= 1;
       },
       subscribe(func: SubscribeFunc): number {
-        if (!subscribers.size) {
-          this.register();
-        }
+        if (!subscribers.size) this.register();
         subUid += 1;
         subscribers.set(subUid, func);
         func(screens);
@@ -94,9 +92,7 @@ export default function useResponsiveObserver() {
       },
       unsubscribe(paramToken: number) {
         subscribers.delete(paramToken);
-        if (!subscribers.size) {
-          this.unregister();
-        }
+        if (!subscribers.size) this.unregister();
       },
       unregister() {
         Object.keys(responsiveMap).forEach((screen) => {
@@ -121,6 +117,7 @@ export default function useResponsiveObserver() {
             mql,
             listener,
           };
+
           listener(mql);
         });
       },
@@ -132,7 +129,7 @@ export default function useResponsiveObserver() {
 export const matchScreen = (screens: ScreenMap, screenSizes?: ScreenSizeMap) => {
   if (screenSizes && typeof screenSizes === 'object') {
     for (let i = 0; i < responsiveArray.length; i++) {
-      const breakpoint = responsiveArray[i];
+      const breakpoint: Breakpoint = responsiveArray[i];
       if (screens[breakpoint] && screenSizes[breakpoint] !== undefined) {
         return screenSizes[breakpoint];
       }
